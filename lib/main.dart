@@ -67,19 +67,28 @@ class _MyTabbedPageState extends State<MyTabbedPage>
           ],
         ),
       ),
-      bottomNavigationBar: TabBar(
-        controller: _tabController,
-        tabs: <Widget>[
-          Tab(
-            icon: Icon(Icons.home),
+      bottomNavigationBar: Theme(
+        data: Theme.of(context).copyWith(
+          // Set the unselected label color to black
+          tabBarTheme: TabBarTheme(
+            labelColor: Colors.black,
+            unselectedLabelColor: Colors.black,
           ),
-          Tab(
-            icon: Icon(Icons.business),
-          ),
-          Tab(
-            icon: Icon(Icons.school),
-          ),
-        ],
+        ),
+        child: TabBar(
+          controller: _tabController,
+          tabs: <Widget>[
+            Tab(
+              icon: Icon(Icons.home),
+            ),
+            Tab(
+              icon: Icon(Icons.business),
+            ),
+            Tab(
+              icon: Icon(Icons.school),
+            ),
+          ],
+        ),
       ),
       body: TabBarView(
         controller: _tabController,
