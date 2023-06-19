@@ -8,114 +8,124 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: MyTabbedPage(),
+      debugShowCheckedModeBanner: false,
+      home: ProductList(),
     );
   }
 }
 
-class MyTabbedPage extends StatefulWidget {
+class ProductList extends StatefulWidget {
   @override
-  _MyTabbedPageState createState() => _MyTabbedPageState();
+  _ProductListState createState() => _ProductListState();
 }
 
-class _MyTabbedPageState extends State<MyTabbedPage>
-    with SingleTickerProviderStateMixin {
-  late TabController _tabController;
-
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 3, vsync: this);
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
-  }
+class _ProductListState extends State<ProductList> {
+  List<Product> products = [
+    Product('Product 1', 10),
+    Product('Product 2', 20),
+    Product('Product 3', 30),
+  ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Tabbed App'),
-      ),
-      drawer: Drawer(
-        child: ListView(
-          children: <Widget>[
-            ListTile(
-              title: Text('Page 1'),
-              onTap: () {
-                Navigator.pop(context);
-                _tabController.animateTo(0);
-              },
-            ),
-            ListTile(
-              title: Text('Page 2'),
-              onTap: () {
-                Navigator.pop(context);
-                _tabController.animateTo(1);
-              },
-            ),
-            ListTile(
-              title: Text('Page 3'),
-              onTap: () {
-                Navigator.pop(context);
-                _tabController.animateTo(2);
-              },
-            ),
-          ],
-        ),
-      ),
-      bottomNavigationBar: Theme(
-        data: Theme.of(context).copyWith(
-          // Set the unselected label color to black
-          tabBarTheme: TabBarTheme(
-            labelColor: Colors.black,
-            unselectedLabelColor: Colors.black,
+        title: Text('Product List'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.shopping_cart),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => CartPage(products: products)),
+              );
+            },
           ),
-        ),
-        child: TabBar(
-          controller: _tabController,
-          tabs: <Widget>[
-            Tab(
-              icon: Icon(Icons.home),
-            ),
-            Tab(
-              icon: Icon(Icons.business),
-            ),
-            Tab(
-              icon: Icon(Icons.school),
-            ),
-          ],
-        ),
-      ),
-      body: TabBarView(
-        controller: _tabController,
-        children: <Widget>[
-          MyPage(number: 1, color: Colors.red),
-          MyPage(number: 2, color: Colors.blue),
-          MyPage(number: 3, color: Colors.green),
         ],
+      ),
+      body: ListView.builder(
+        itemCount: products.length,
+        itemBuilder: (context, index) {
+          return ProductItem(
+            product: products[index],
+            onBuyNowPressed: () {
+              setState(() {
+                products[index].buyCount++;
+                if (products[index].buyCount == 5) {
+                  showDialog(
+                    context: context,
+                    builder: (context) {
+                      return AlertDialog(
+                        title: Text('Congratulations!'),
+                        content: Text('You\'ve bought 5 ${products[index].name}!'),
+                        actions: [
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                            child: Text('OK'),
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                }
+              });
+            },
+          );
+        },
       ),
     );
   }
 }
 
-class MyPage extends StatelessWidget {
-  final int number;
-  final Color color;
+class Product {
+  final String name;
+  final double price;
+  int buyCount;
 
-  const MyPage({required this.number, required this.color});
+  Product(this.name, this.price) : buyCount = 0;
+}
+
+class ProductItem extends StatelessWidget {
+  final Product product;
+  final VoidCallback onBuyNowPressed;
+
+  ProductItem({required this.product, required this.onBuyNowPressed});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: color,
-      child: Center(
+    return ListTile(
+      leading: CircleAvatar(
+        child: Text(product.name.substring(0, 1)),
+      ),
+      title: Text(product.name),
+      subtitle: Text('\$${product.price.toStringAsFixed(2)}'),
+      trailing: TextButton(
+        onPressed: onBuyNowPressed,
+        child: Text('Buy Now (${product.buyCount})'),
+      ),
+    );
+  }
+}
+
+class CartPage extends StatelessWidget {
+  final List<Product> products;
+
+  CartPage({required this.products});
+
+  @override
+  Widget build(BuildContext context) {
+    int totalBuyCount = products.fold(0, (sum, product) => sum + product.buyCount);
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Cart'),
+      ),
+      body: Center(
         child: Text(
-          'Page $number',
-          style: TextStyle(fontSize: 24, color: Colors.white),
+          'Total Products: $totalBuyCount',
+          style: TextStyle(fontSize: 24),
         ),
       ),
     );
